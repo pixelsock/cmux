@@ -38,6 +38,7 @@ Here are some specific use cases we enable:
   - **SSH**: regular git clones on a remote server ([docs](https://cmux.io/ssh.html))
 - Multi-model (`sonnet-4-*`, `gpt-5-*`, `opus-4-*`)
   - Ollama supported for local LLMs ([docs](https://cmux.io/models.html))
+  - Claude Code CLI supported for subscription-based auth (no API keys needed)
 - Supporting UI and keybinds for efficiently managing a suite of agents
 - Rich markdown outputs (mermaid diagrams, LaTeX, etc.)
 
