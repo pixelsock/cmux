@@ -38,6 +38,22 @@ export interface OpenAIProviderOptions {
 export interface OllamaProviderOptions {}
 
 /**
+ * Claude Code CLI-specific options
+ * Uses the Claude CLI with OAuth authentication instead of API keys.
+ * Requires the Claude CLI to be installed and authenticated.
+ */
+export interface ClaudeCodeProviderOptions {
+  /** Maximum number of turns for the conversation */
+  maxTurns?: number;
+  /** Working directory for CLI operations */
+  cwd?: string;
+  /** Permission mode for tool usage */
+  permissionMode?: "default" | "acceptEdits" | "bypassPermissions" | "plan";
+  /** Custom path to Claude Code SDK executable */
+  pathToClaudeCodeExecutable?: string;
+}
+
+/**
  * Cmux provider options - used by both frontend and backend
  */
 export interface CmuxProviderOptions {
@@ -45,4 +61,5 @@ export interface CmuxProviderOptions {
   anthropic?: AnthropicProviderOptions;
   openai?: OpenAIProviderOptions;
   ollama?: OllamaProviderOptions;
+  claudeCode?: ClaudeCodeProviderOptions;
 }

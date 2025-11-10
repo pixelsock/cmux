@@ -433,6 +433,9 @@ export class Config {
 //   },
 //   "ollama": {
 //     "baseUrl": "http://localhost:11434/api"  // Optional - only needed for remote/custom URL
+//   },
+//   "claude-code": {
+//     "enabled": true  // Uses Claude CLI OAuth - no API key needed
 //   }
 // }
 ${jsonString}`;

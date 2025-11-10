@@ -57,6 +57,7 @@
     "@radix-ui/react-toggle-group": "^1.1.11",
     "@radix-ui/react-tooltip": "^1.2.8",
     "ai": "^5.0.72",
+    "ai-sdk-provider-claude-code": "^2.1.0",
     "ai-tokenizer": "^1.0.3",
     "chalk": "^5.6.2",
     "cors": "^2.8.5",
