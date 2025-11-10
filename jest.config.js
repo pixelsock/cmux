@@ -26,8 +26,10 @@ module.exports = {
       },
     ],
   },
-  // Transform ESM modules (like shiki) to CommonJS for Jest
-  transformIgnorePatterns: ["node_modules/(?!(shiki)/)"],
+  // Transform ESM modules (like shiki and claude-agent-sdk) to CommonJS for Jest
+  transformIgnorePatterns: [
+    "node_modules/(?!(shiki|@anthropic-ai/claude-agent-sdk|ai-sdk-provider-claude-code)/)",
+  ],
   // Run tests in parallel (use 50% of available cores, or 4 minimum)
   maxWorkers: "50%",
   // Force exit after tests complete to avoid hanging on lingering handles

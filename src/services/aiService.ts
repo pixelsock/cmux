@@ -93,18 +93,21 @@ if (typeof globalFetchWithExtras.certificate === "function") {
 
 /**
  * Preload AI SDK provider modules to avoid race conditions in concurrent test environments.
- * This function loads @ai-sdk/anthropic, @ai-sdk/openai, and ollama-ai-provider-v2 eagerly
- * so that subsequent dynamic imports in createModel() hit the module cache instead of racing.
+ * This function loads @ai-sdk/anthropic, @ai-sdk/openai, ollama-ai-provider-v2, and
+ * ai-sdk-provider-claude-code eagerly so that subsequent dynamic imports in createModel()
+ * hit the module cache instead of racing.
  *
  * In production, providers are lazy-loaded on first use to optimize startup time.
  * In tests, we preload them once during setup to ensure reliable concurrent execution.
  */
 export async function preloadAISDKProviders(): Promise<void> {
   // Preload providers to ensure they're in the module cache before concurrent tests run
-  await Promise.all([
+  // Use allSettled to continue even if one provider fails to load (e.g., ESM issues in Jest)
+  await Promise.allSettled([
     import("@ai-sdk/anthropic"),
     import("@ai-sdk/openai"),
     import("ollama-ai-provider-v2"),
+    import("ai-sdk-provider-claude-code"),
   ]);
 }
 
@@ -413,6 +416,25 @@ export class AIService extends EventEmitter {
           // Use strict mode for better compatibility with Ollama API
           compatibility: "strict",
         });
+        return Ok(provider(modelId));
+      }
+
+      // Handle Claude Code CLI provider
+      if (providerName === "claude-code") {
+        // Claude Code uses the Claude CLI with OAuth authentication
+        // No API key required - user must be logged in via `claude login`
+        
+        // Lazy-load Claude Code provider to reduce startup time
+        const { createClaudeCode } = await import("ai-sdk-provider-claude-code");
+        
+        // Build settings from provider config and cmux options
+        const claudeCodeOptions = cmuxProviderOptions?.claudeCode;
+        const settings = {
+          ...providerConfig,
+          ...claudeCodeOptions,
+        };
+        
+        const provider = createClaudeCode({ defaultSettings: settings });
         return Ok(provider(modelId));
       }
 

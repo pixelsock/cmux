@@ -5,12 +5,22 @@ const trim = (value: unknown): string => (typeof value === "string" ? value.trim
 const hasApiKey = (config: ProviderConfig | undefined): boolean =>
   Boolean(config && typeof config.apiKey === "string" && config.apiKey.trim().length > 0);
 
+const isClaudeCodeProvider = (config: ProviderConfig | undefined): boolean =>
+  Boolean(config && config.enabled === true);
+
 const hasAnyConfiguredProvider = (providers: ProvidersConfig | null | undefined): boolean => {
   if (!providers) {
     return false;
   }
 
-  return Object.values(providers).some((providerConfig) => hasApiKey(providerConfig));
+  return Object.entries(providers).some(([providerName, providerConfig]) => {
+    // Claude Code doesn't need an API key, just needs to be enabled
+    if (providerName === "claude-code") {
+      return isClaudeCodeProvider(providerConfig);
+    }
+    // Other providers need an API key
+    return hasApiKey(providerConfig);
+  });
 };
 
 const buildProvidersFromEnv = (env: NodeJS.ProcessEnv): ProvidersConfig => {
@@ -97,7 +107,7 @@ export const ensureProvidersConfig = (
   const providersFromEnv = buildProvidersFromEnv(env);
   if (!hasAnyConfiguredProvider(providersFromEnv)) {
     throw new Error(
-      "No provider credentials found. Configure providers.jsonc or set ANTHROPIC_API_KEY / OPENAI_API_KEY."
+      "No provider credentials found. Configure providers.jsonc with ANTHROPIC_API_KEY / OPENAI_API_KEY, or enable claude-code provider."
     );
   }
 

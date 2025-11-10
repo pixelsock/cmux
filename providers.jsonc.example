@@ -1,0 +1,39 @@
+// Example providers configuration for cmux
+// Copy this to ~/.cmux/providers.jsonc and configure your preferred providers
+
+{
+  // Anthropic (API key required)
+  // Get your API key from: https://console.anthropic.com/
+  "anthropic": {
+    "apiKey": "sk-ant-..."
+  },
+
+  // Claude Code CLI (No API key required - uses subscription credits)
+  // 1. Install: npm install -g @anthropic-ai/claude-code
+  // 2. Login: claude login
+  // 3. Enable here:
+  "claude-code": {
+    "enabled": true,
+    // Optional configuration:
+    // "maxTurns": 10,
+    // "permissionMode": "default", // Options: "default", "acceptEdits", "bypassPermissions", "plan"
+    // "cwd": "/path/to/working/directory",
+    // "pathToClaudeCodeExecutable": "/custom/path/to/claude"
+  },
+
+  // OpenAI (API key required)
+  // Get your API key from: https://platform.openai.com/api-keys
+  "openai": {
+    "apiKey": "sk-..."
+    // Optional:
+    // "baseUrl": "https://api.openai.com/v1",
+    // "organization": "org-..."
+  },
+
+  // Ollama (Local LLMs - no API key required)
+  // Install from: https://ollama.com
+  "ollama": {
+    // Optional - only needed for custom URL:
+    // "baseUrl": "http://localhost:11434/api"
+  }
+}

@@ -15,6 +15,55 @@ Best supported provider with full feature support:
 - `anthropic:claude-sonnet-4-5`
 - `anthropic:claude-opus-4-1`
 
+#### Claude Code CLI (Subscription)
+
+Use your Claude subscription (Pro/Max/Team) without API keys:
+
+- `claude-code:claude-sonnet-4-5`
+- `claude-code:claude-opus-4-1`
+- `claude-code:sonnet` (shorthand)
+- `claude-code:opus` (shorthand)
+- `claude-code:haiku` (shorthand)
+
+**No API key required** - uses OAuth authentication through the Claude CLI. This lets you use your included subscription credits instead of paying per-token API fees.
+
+**Setup:**
+
+1. Install the Claude CLI:
+   ```bash
+   npm install -g @anthropic-ai/claude-code
+   ```
+
+2. Log in with your Claude subscription:
+   ```bash
+   claude login
+   ```
+   Follow the browser OAuth flow to authenticate with your Claude Pro/Max/Team account.
+
+3. Add to `~/.cmux/providers.jsonc`:
+   ```jsonc
+   {
+     "claude-code": {
+       "enabled": true
+     }
+   }
+   ```
+
+**Optional Configuration:**
+
+```jsonc
+{
+  "claude-code": {
+    "enabled": true,
+    "maxTurns": 10,
+    "permissionMode": "default",
+    "pathToClaudeCodeExecutable": "/custom/path/to/claude"
+  }
+}
+```
+
+**Important:** Make sure `ANTHROPIC_API_KEY` is not set in your environment, as the Claude CLI will prioritize API key authentication over your subscription if present.
+
 #### OpenAI (Cloud)
 
 GPT-5 family of models:
@@ -72,6 +121,10 @@ All providers are configured in `~/.cmux/providers.jsonc`. Example configuration
   "ollama": {
     "baseUrl": "http://your-server:11434/api",
   },
+  // Optional for Claude Code CLI (uses subscription credits)
+  "claude-code": {
+    "enabled": true
+  }
 }
 ```
 
