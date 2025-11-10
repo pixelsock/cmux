@@ -39,7 +39,7 @@ const NewWorkspaceModal: React.FC<NewWorkspaceModalProps> = ({
 
   // Load runtime preferences from localStorage for this project
   const [runtimeOptions, setRuntimeOptions] = useNewWorkspaceOptions(projectPath);
-  const { runtimeMode, sshHost, getRuntimeString } = runtimeOptions;
+  const { runtimeMode, sshHost, workingDir, getRuntimeString } = runtimeOptions;
 
   useEffect(() => {
     setError(loadErrorMessage ?? null);
@@ -65,7 +65,7 @@ const NewWorkspaceModal: React.FC<NewWorkspaceModalProps> = ({
   const handleCancel = () => {
     setBranchName("");
     setTrunkBranch(defaultTrunkBranch ?? branches[0] ?? "");
-    setRuntimeOptions(RUNTIME_MODE.LOCAL, "");
+    setRuntimeOptions(RUNTIME_MODE.LOCAL, "", "");
     setError(loadErrorMessage ?? null);
     onClose();
   };
@@ -98,6 +98,15 @@ const NewWorkspaceModal: React.FC<NewWorkspaceModalProps> = ({
       // SSH will use current user or ~/.ssh/config if user not specified
     }
 
+    // Validate working directory if Terminal runtime selected
+    if (runtimeMode === RUNTIME_MODE.TERMINAL) {
+      const trimmedDir = workingDir.trim();
+      if (trimmedDir.length === 0) {
+        setError("Working directory is required for terminal mode");
+        return;
+      }
+    }
+
     setIsLoading(true);
     setError(null);
 
@@ -108,7 +117,7 @@ const NewWorkspaceModal: React.FC<NewWorkspaceModalProps> = ({
       await onAdd(trimmedBranchName, normalizedTrunkBranch, runtime);
       setBranchName("");
       setTrunkBranch(defaultTrunkBranch ?? branches[0] ?? "");
-      setRuntimeOptions(RUNTIME_MODE.LOCAL, "");
+      setRuntimeOptions(RUNTIME_MODE.LOCAL, "", "");
       onClose();
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to create workspace";
@@ -210,14 +219,22 @@ const NewWorkspaceModal: React.FC<NewWorkspaceModalProps> = ({
             onChange={(event) => {
               const newMode = event.target.value as
                 | typeof RUNTIME_MODE.LOCAL
-                | typeof RUNTIME_MODE.SSH;
-              setRuntimeOptions(newMode, newMode === RUNTIME_MODE.LOCAL ? "" : sshHost);
+                | typeof RUNTIME_MODE.SSH
+                | typeof RUNTIME_MODE.TERMINAL;
+              if (newMode === RUNTIME_MODE.LOCAL) {
+                setRuntimeOptions(newMode, "", "");
+              } else if (newMode === RUNTIME_MODE.SSH) {
+                setRuntimeOptions(newMode, sshHost, "");
+              } else if (newMode === RUNTIME_MODE.TERMINAL) {
+                setRuntimeOptions(newMode, "", workingDir);
+              }
               setError(null);
             }}
             disabled={isLoading}
           >
             <option value={RUNTIME_MODE.LOCAL}>Local</option>
             <option value={RUNTIME_MODE.SSH}>SSH Remote</option>
+            <option value={RUNTIME_MODE.TERMINAL}>Terminal (Existing Directory)</option>
           </select>
         </div>
 
@@ -229,7 +246,7 @@ const NewWorkspaceModal: React.FC<NewWorkspaceModalProps> = ({
               type="text"
               value={sshHost}
               onChange={(event) => {
-                setRuntimeOptions(RUNTIME_MODE.SSH, event.target.value);
+                setRuntimeOptions(RUNTIME_MODE.SSH, event.target.value, "");
                 setError(null);
               }}
               placeholder="hostname or user@hostname"
@@ -243,12 +260,43 @@ const NewWorkspaceModal: React.FC<NewWorkspaceModalProps> = ({
           </div>
         )}
 
+        {runtimeMode === RUNTIME_MODE.TERMINAL && (
+          <div className={formFieldClasses}>
+            <label htmlFor="workingDir">Working Directory:</label>
+            <input
+              id="workingDir"
+              type="text"
+              value={workingDir}
+              onChange={(event) => {
+                setRuntimeOptions(RUNTIME_MODE.TERMINAL, "", event.target.value);
+                setError(null);
+              }}
+              placeholder="/path/to/your/project"
+              disabled={isLoading}
+              required
+              aria-required="true"
+            />
+            <div className="text-muted mt-1.5 text-[13px]">
+              Agent will work directly in this existing directory. No worktree will be created.
+            </div>
+            <div className="text-warning mt-1.5 text-[13px]">
+              ⚠️ Terminal mode is for single-agent workflows. Parallel workspaces are not supported.
+            </div>
+          </div>
+        )}
+
         <ModalInfo id={infoId}>
-          <p>This will create a workspace at:</p>
+          <p>
+            {runtimeMode === RUNTIME_MODE.TERMINAL
+              ? "Agent will work in existing directory:"
+              : "This will create a workspace at:"}
+          </p>
           <code className="block break-all">
             {runtimeMode === RUNTIME_MODE.SSH
               ? `${sshHost || "<host>"}:~/cmux/${branchName || "<branch-name>"}`
-              : `~/.cmux/src/${projectName}/${branchName || "<branch-name>"}`}
+              : runtimeMode === RUNTIME_MODE.TERMINAL
+                ? workingDir || "<working-directory>"
+                : `~/.cmux/src/${projectName}/${branchName || "<branch-name>"}`}
           </code>
         </ModalInfo>
 

@@ -1,6 +1,7 @@
 import type { Runtime } from "./Runtime";
 import { LocalRuntime } from "./LocalRuntime";
 import { SSHRuntime } from "./SSHRuntime";
+import { TerminalRuntime } from "./TerminalRuntime";
 import type { RuntimeConfig } from "@/types/runtime";
 
 /**
@@ -18,6 +19,9 @@ export function createRuntime(config: RuntimeConfig): Runtime {
         identityFile: config.identityFile,
         port: config.port,
       });
+
+    case "terminal":
+      return new TerminalRuntime(config.workingDir, config.inheritEnv);
 
     default: {
       const unknownConfig = config as { type?: string };

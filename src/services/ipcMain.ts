@@ -234,26 +234,29 @@ export class IpcMain {
           srcBaseDir: this.config.srcDir,
         };
 
-        // Create temporary runtime to resolve srcBaseDir path
-        // This allows tilde paths to work for both local and SSH runtimes
+        // Create temporary runtime to resolve paths
+        // For local/SSH: resolve srcBaseDir path (expanding tildes, etc.)
+        // For terminal: use workingDir as-is (already an absolute path)
         let runtime;
-        let resolvedSrcBaseDir: string;
         try {
           runtime = createRuntime(finalRuntimeConfig);
 
-          // Resolve srcBaseDir to absolute path (expanding tildes, etc.)
-          resolvedSrcBaseDir = await runtime.resolvePath(finalRuntimeConfig.srcBaseDir);
+          // Only resolve paths for local and SSH runtimes
+          if (finalRuntimeConfig.type === "local" || finalRuntimeConfig.type === "ssh") {
+            const resolvedSrcBaseDir = await runtime.resolvePath(finalRuntimeConfig.srcBaseDir);
 
-          // If path was resolved to something different, recreate runtime with resolved path
-          if (resolvedSrcBaseDir !== finalRuntimeConfig.srcBaseDir) {
-            const resolvedRuntimeConfig: RuntimeConfig = {
-              ...finalRuntimeConfig,
-              srcBaseDir: resolvedSrcBaseDir,
-            };
-            runtime = createRuntime(resolvedRuntimeConfig);
-            // Update finalRuntimeConfig to store resolved path in config
-            finalRuntimeConfig.srcBaseDir = resolvedSrcBaseDir;
+            // If path was resolved to something different, recreate runtime with resolved path
+            if (resolvedSrcBaseDir !== finalRuntimeConfig.srcBaseDir) {
+              const resolvedRuntimeConfig: RuntimeConfig = {
+                ...finalRuntimeConfig,
+                srcBaseDir: resolvedSrcBaseDir,
+              };
+              runtime = createRuntime(resolvedRuntimeConfig);
+              // Update finalRuntimeConfig to store resolved path in config
+              finalRuntimeConfig.srcBaseDir = resolvedSrcBaseDir;
+            }
           }
+          // Terminal runtime doesn't need path resolution (workingDir is already absolute)
         } catch (error) {
           const errorMsg = error instanceof Error ? error.message : String(error);
           return { success: false, error: errorMsg };

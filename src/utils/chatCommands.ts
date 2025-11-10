@@ -10,7 +10,7 @@ import type { SendMessageOptions } from "@/types/ipc";
 import type { CmuxFrontendMetadata, CompactionRequestData } from "@/types/message";
 import type { FrontendWorkspaceMetadata } from "@/types/workspace";
 import type { RuntimeConfig } from "@/types/runtime";
-import { RUNTIME_MODE, SSH_RUNTIME_PREFIX } from "@/types/runtime";
+import { RUNTIME_MODE, SSH_RUNTIME_PREFIX, TERMINAL_RUNTIME_PREFIX } from "@/types/runtime";
 import { CUSTOM_EVENTS } from "@/constants/events";
 import type { Toast } from "@/components/ChatInputToast";
 import type { ParsedCommand } from "@/utils/slashCommands/types";
@@ -26,6 +26,7 @@ import { getRuntimeKey } from "@/constants/storage";
  * Parse runtime string from -r flag into RuntimeConfig for backend
  * Supports formats:
  * - "ssh <host>" or "ssh <user@host>" -> SSH runtime
+ * - "terminal <path>" -> Terminal runtime (existing directory)
  * - "local" -> Local runtime (explicit)
  * - undefined -> Local runtime (default)
  */
@@ -61,7 +62,21 @@ export function parseRuntimeString(
     };
   }
 
-  throw new Error(`Unknown runtime type: '${runtime}'. Use 'ssh <host>' or 'local'`);
+  // Parse "terminal <path>" format
+  if (lowerTrimmed.startsWith(TERMINAL_RUNTIME_PREFIX)) {
+    const workingDir = trimmed.slice(TERMINAL_RUNTIME_PREFIX.length).trim();
+    if (!workingDir) {
+      throw new Error("Terminal runtime requires working directory (e.g., 'terminal /path/to/project')");
+    }
+
+    return {
+      type: RUNTIME_MODE.TERMINAL,
+      workingDir,
+      inheritEnv: true, // Always inherit environment in terminal mode
+    };
+  }
+
+  throw new Error(`Unknown runtime type: '${runtime}'. Use 'ssh <host>', 'terminal <path>', or 'local'`);
 }
 
 export interface CreateWorkspaceOptions {
