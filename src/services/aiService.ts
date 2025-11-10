@@ -102,7 +102,8 @@ if (typeof globalFetchWithExtras.certificate === "function") {
  */
 export async function preloadAISDKProviders(): Promise<void> {
   // Preload providers to ensure they're in the module cache before concurrent tests run
-  await Promise.all([
+  // Use allSettled to continue even if one provider fails to load (e.g., ESM issues in Jest)
+  await Promise.allSettled([
     import("@ai-sdk/anthropic"),
     import("@ai-sdk/openai"),
     import("ollama-ai-provider-v2"),
